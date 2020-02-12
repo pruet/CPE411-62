@@ -216,9 +216,9 @@ namespace DNWS
             }
 
             // Shuting down
-            //ns.Close();
+            ns.Close();
             _client.Shutdown(SocketShutdown.Both);
-            //_client.Close();
+            _client.Close();
 
         }
     }
@@ -271,8 +271,10 @@ namespace DNWS
 
         public void ThreadProc(Object stateinfo)
         {
-            TaskInfo ti = stateinfo as TaskInfo;
-            ti.hp.Process();
+            // TaskInfo ti = stateinfo as TaskInfo;
+            // ti.hp.process();
+            HTTPProcessor hp = (HTTPProcessor)stateinfo;
+            hp.Process();
         }
 
         /// <summary>
@@ -284,6 +286,7 @@ namespace DNWS
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
             // Create listening socket, queue size is 5 now.
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            int Model_server = 1; // 1 = Thread Pool , 2 = Thread , 3 = Normal
             serverSocket.Bind(localEndPoint);
             serverSocket.Listen(5);
             _parent.Log("Server started at port " + _port + ".");
@@ -296,7 +299,18 @@ namespace DNWS
                     // Get one, show some info
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+                    switch(Model_server){
+                        case 1:
+                            ThreadPool.QueueUserWorkItem(ThreadProc,hp);
+                            break;
+                        case 2:
+                            Thread clientThread = new Thread(hp.Process);
+                            clientThread.Start();
+                            break;
+                        case 3 :
+                            hp.Process();
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
