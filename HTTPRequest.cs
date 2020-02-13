@@ -82,7 +82,7 @@ namespace DNWS
 
       if(lines.Length == 1) return;
 
-      for(int i = 1; i != lines.Length; i++) {
+      for(int i = 1; i != lines.Length; i++) {       
         String[] pair = Regex.Split(lines[i], ": "); //FIXME
         if(pair.Length == 0) continue;
         if(pair.Length == 1) { // handle post body
@@ -114,7 +114,12 @@ namespace DNWS
 
     public void addProperty(String key, String value)
     {
-      _propertyListDictionary[key.ToLower()] = value;
+      try {
+        _propertyListDictionary[key.ToLower()] = value;
+      }
+      catch(Exception ex) {
+        Console.WriteLine("Error jaaaaaa");
+      }
     }
     public void addRequest(String key, String value)
     {
