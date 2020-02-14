@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 
-
 namespace DNWS
 {
     // Main class
@@ -30,6 +29,7 @@ namespace DNWS
             Configuration = builder.Build();
             DotNetWebServer ws = DotNetWebServer.GetInstance(this);
             ws.Start();
+            
         }
 
         static void Main(string[] args)
@@ -280,8 +280,15 @@ namespace DNWS
         /// </summary>
         public void Start()
         {
+            List<Thread> threads = new List<Thread>();
+            Console.CancelKeyPress += new ConsoleCancelEventHandler((Object sender, ConsoleCancelEventArgs args) => {
+                args.Cancel = true;
+                threads.FindAll(thread => thread.IsAlive).ForEach(thread => thread.Abort());
+            });
+
             _port = Convert.ToInt32(Program.Configuration["Port"]);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
+
             // Create listening socket, queue size is 5 now.
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             serverSocket.Bind(localEndPoint);
@@ -293,10 +300,24 @@ namespace DNWS
                 {
                     // Wait for client
                     clientSocket = serverSocket.Accept();
-                    // Get one, show some info
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+                    
+                    // Create thread
+                    ThreadStart threadStart = new ThreadStart(hp.Process);
+                    Thread thread = new Thread(threadStart);
+
+                    // Start Thread
+                    try {
+                        thread.Start();
+                        threads.Add(thread);
+                    } catch (ThreadStateException e) {
+                        _parent.Log("Catch Error: " + e.Message);
+                    }
+
+                    // Single thread	                  
+                    // hp.Process();	                  
+                    // End single therad	                  
                 }
                 catch (Exception ex)
                 {
