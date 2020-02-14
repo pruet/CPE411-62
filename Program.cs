@@ -313,6 +313,7 @@ namespace DNWS
                     // Wait for client
                     clientSocket = serverSocket.Accept();
                     // Get one, show some info
+                    //Implement thread pool
                     ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc));
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     Thread.Sleep(10000);
@@ -324,9 +325,9 @@ namespace DNWS
                     //Add thread that execute in thread dictionary
                     //threads.Add(thread.ManagedThreadId,thread);
 
-                }catch(ThreadAbortException ex)
-                {
-                    _parent.Log($"Thread Abort : {ex.Message}");
+                // }catch(ThreadAbortException ex)
+                // {
+                //     _parent.Log($"Thread Abort : {ex.Message}");
                 }
                 catch (Exception ex)
                 {
