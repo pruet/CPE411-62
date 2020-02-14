@@ -280,23 +280,53 @@ namespace DNWS
         /// </summary>
         public void Start()
         {
-            _port = Convert.ToInt32(Program.Configuration["Port"]);
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
-            // Create listening socket, queue size is 5 now.
-            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            serverSocket.Bind(localEndPoint);
-            serverSocket.Listen(5);
-            _parent.Log("Server started at port " + _port + ".");
+            //Implement dictionary for keep thread 
+            Dictionary<int, Thread> threads = new Dictionary<int, Thread>();
             while (true)
             {
                 try
                 {
+                    _port = Convert.ToInt32(Program.Configuration["Port"]);
+                    IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
+                    // Create listening socket, queue size is 5 now.
+                    serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    serverSocket.Bind(localEndPoint);
+                    serverSocket.Listen(5);
+                    _parent.Log("Server started at port " + _port + ".");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _parent.Log("Server can't start");
+                    _parent.Log(ex.Message);
+                }
+                _port = _port + 1; //next port for next thread
+            } 
+            
+            while (true)
+            {
+                //Multithreading    
+                //if you want to use thread pool that give comment multithreading and uncomment thread pool operate
+                try
+                {
+
                     // Wait for client
                     clientSocket = serverSocket.Accept();
                     // Get one, show some info
+                    //ThreadPool.QueueUserWorkItem(ThreadProc);
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
+                    //Thread.Sleep(10000);
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+                    //Create thread
+                    Thread thread = new Thread(new ThreadStart(hp.Process));
+                    //Star thread
+                    thread.Start();
+                    //Add thread that execute in thread dictionary
+                    threads.Add(thread.ManagedThreadId,thread);
+
+                }catch(ThreadAbortException ex)
+                {
+                    _parent.Log($"Thread Abort : {ex.Message}");
                 }
                 catch (Exception ex)
                 {

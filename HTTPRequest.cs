@@ -45,31 +45,34 @@ namespace DNWS
     public HTTPRequest(String request)
     {
       _propertyListDictionary = new Dictionary<String, String>();
+                      //show expr that not change 
       String[] lines = Regex.Split(request, "\\n");
 
       if(lines.Length == 0) {
-        _status = 500;
+        _status = 500; //Internal Server Error
         return;
       }
-
+                                                 //cut at whitespace
       String[] statusLine = Regex.Split(lines[0], "\\s");
       if(statusLine.Length != 4) { // too short something is wrong
-        _status = 401;
+        _status = 401; //Unauthorized Error
         return;
       }
+          //statusLine[0] not equal "get" is given set _method = "GET"
       if (!statusLine[0].ToLower().Equals("get"))
       {
         _method = "GET";
       } else if(!statusLine[0].ToLower().Equals("post")) {
         _method = "POST";
       } else {
-        _status = 501;
-        return;
+        _status = 501;  //Not Implemented
+        return;  //end process of httprequest
       }
-      _status = 200;
+      _status = 200;  //OK
 
       _url = statusLine[1];
       String[] urls = Regex.Split(_url, "/");
+      //last index of urls is value of _filename
       _filename = urls[urls.Length - 1];
       String[] parts = Regex.Split(_filename, "[?]");
       if (parts.Length > 1 && parts[1].Contains('&'))
@@ -77,17 +80,18 @@ namespace DNWS
         //Ref: http://stackoverflow.com/a/4982122
         _requestListDictionary = parts[1].Split('&').Select(x => x.Split('=')).ToDictionary(x => x[0].ToLower(), x => x[1]);
       } else{
+        // create new dictionary 
         _requestListDictionary = new Dictionary<String, String>();
       }
 
-      if(lines.Length == 1) return;
+      if(lines.Length == 1) return; //end process
 
       for(int i = 1; i != lines.Length; i++) {
         String[] pair = Regex.Split(lines[i], ": "); //FIXME
         if(pair.Length == 0) continue;
         if(pair.Length == 1) { // handle post body
           if(pair[0].Length > 1) { //FIXME, this is a quick hack
-            Dictionary<String, String> _bodys = pair[0].Split('&').Select(x => x.Split('=')).ToDictionary(x => x[0].ToLower(), x => x[1]);
+            Dictionary<String, String> _bodys = pair[0].Split(',').Select(x => x.Split('=')).ToDictionary(x => x[0].ToLower(), x => x[1]);
             _requestListDictionary = _requestListDictionary.Concat(_bodys).ToDictionary(x=>x.Key, x=>x.Value);
           }
         } else { // Length == 2, GET url request

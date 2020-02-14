@@ -6,8 +6,10 @@ using System.Threading;
 
 namespace DNWS
 {
-  class DelayPlugin : IPlugin
+  class DelayPlugin : IPlugin 
   {
+
+
     public DelayPlugin()
     {
     }
