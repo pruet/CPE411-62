@@ -297,8 +297,15 @@ namespace DNWS
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
                     //hp.Process();
-                    TaskInfo temp = new TaskInfo(hp);
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc),temp);
+
+                    //Thread
+                    Thread thread = new Thread(new ThreadStart(hp.Process));
+                    thread.Start();
+
+                    //ThreadPool
+                    // TaskInfo temp = new TaskInfo(hp);
+                    // ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc),temp);
+                    // Thread.Sleep(1000);
                 }
                 catch (Exception ex)
                 {
