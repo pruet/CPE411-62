@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net.Sockets;
@@ -45,6 +45,7 @@ namespace DNWS
 
     public class HTTPProcessor
     {
+
         protected class PluginInfo
         {
             protected string _path;
@@ -167,7 +168,7 @@ namespace DNWS
                 bytesRead = ns.Read(bytes, 0, bytes.Length);
                 requestStr += Encoding.UTF8.GetString(bytes, 0, bytesRead);
             } while (ns.DataAvailable);
-
+            Console.WriteLine(requestStr); // dont commend this line
             request = new HTTPRequest(requestStr);
             request.addProperty("RemoteEndPoint", _client.RemoteEndPoint.ToString());
 
@@ -242,6 +243,7 @@ namespace DNWS
     /// </summary>
     public class DotNetWebServer
     {
+        public static Random rand = new Random();
         protected int _port;
         protected Program _parent;
         protected Socket serverSocket;
@@ -269,12 +271,10 @@ namespace DNWS
             return _instance;
         }
 
-        public void ThreadProc(Object stateinfo)
+        public void ThreadProc(HTTPProcessor stateinfo)
         {
-            // TaskInfo ti = stateinfo as TaskInfo;
-            // ti.hp.process();
-            HTTPProcessor hp = (HTTPProcessor)stateinfo;
-            hp.Process();
+            stateinfo.Process();
+            Thread.Sleep(10);
         }
 
         /// <summary>
@@ -301,7 +301,8 @@ namespace DNWS
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
                     switch(Model_server){
                         case 1:
-                            ThreadPool.QueueUserWorkItem(ThreadProc,hp);
+                            ThreadPool.QueueUserWorkItem(new WaitCallback(delegate(object state) 
+                                                        {ThreadProc(hp);}),null);
                             break;
                         case 2:
                             Thread clientThread = new Thread(hp.Process);
