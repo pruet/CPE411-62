@@ -7,6 +7,12 @@ using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 
+enum RunType
+{
+    normal,
+    thread,
+    threadPool
+}
 
 namespace DNWS
 {
@@ -271,7 +277,7 @@ namespace DNWS
 
         public void ThreadProc(Object stateinfo)
         {
-            TaskInfo ti = stateinfo as TaskInfo;
+            TaskInfo ti = new TaskInfo(stateinfo as HTTPProcessor);
             ti.hp.Process();
         }
 
@@ -287,6 +293,9 @@ namespace DNWS
             serverSocket.Bind(localEndPoint);
             serverSocket.Listen(5);
             _parent.Log("Server started at port " + _port + ".");
+
+            RunType runType = RunType.thread;
+
             while (true)
             {
                 try
@@ -296,7 +305,21 @@ namespace DNWS
                     // Get one, show some info
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+
+                    switch (runType)
+                    {
+                        case RunType.normal:
+                            hp.Process();
+                            break;
+                        case RunType.thread:
+                            Thread thread = new Thread(new ThreadStart(hp.Process));
+                            thread.Start();
+                            break;
+                        case RunType.threadPool:
+                            ThreadPool.QueueUserWorkItem(ThreadProc, hp); 
+                            Thread.Sleep(50); 
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
