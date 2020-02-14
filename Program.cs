@@ -287,6 +287,22 @@ namespace DNWS
             serverSocket.Bind(localEndPoint);
             serverSocket.Listen(5);
             _parent.Log("Server started at port " + _port + ".");
+            // while (true)
+            // {
+            //     try
+            //     {
+            //         // Wait for client
+            //         clientSocket = serverSocket.Accept();
+            //         // Get one, show some info
+            //         _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
+            //         HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
+            //         hp.Process();
+            //     }
+            //     catch (Exception ex)
+            //     {
+            //         _parent.Log("Server starting error: " + ex.Message + "\n" + ex.StackTrace);
+            //     }
+            // }
             while (true)
             {
                 try
@@ -295,14 +311,21 @@ namespace DNWS
                     clientSocket = serverSocket.Accept();
                     // Get one, show some info
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
+                   
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+                    TaskInfo ti = new TaskInfo(hp);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc),ti);
+                   
+                    // hp.Process();
                 }
                 catch (Exception ex)
                 {
                     _parent.Log("Server starting error: " + ex.Message + "\n" + ex.StackTrace);
                 }
             }
+
+
+
         }
     }
 }
