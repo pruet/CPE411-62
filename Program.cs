@@ -281,7 +281,7 @@ namespace DNWS
         public void Start()
         {
             //Implement dictionary for keep thread 
-            Dictionary<int, Thread> threads = new Dictionary<int, Thread>();
+            //Dictionary<int, Thread> threads = new Dictionary<int, Thread>();
             while (true)
             {
                 try
@@ -313,16 +313,16 @@ namespace DNWS
                     // Wait for client
                     clientSocket = serverSocket.Accept();
                     // Get one, show some info
-                    //ThreadPool.QueueUserWorkItem(ThreadProc);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc));
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
-                    //Thread.Sleep(10000);
+                    Thread.Sleep(10000);
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
                     //Create thread
-                    Thread thread = new Thread(new ThreadStart(hp.Process));
+                    //Thread thread = new Thread(new ThreadStart(hp.Process));
                     //Star thread
-                    thread.Start();
+                    //thread.Start();
                     //Add thread that execute in thread dictionary
-                    threads.Add(thread.ManagedThreadId,thread);
+                    //threads.Add(thread.ManagedThreadId,thread);
 
                 }catch(ThreadAbortException ex)
                 {
