@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net.Sockets;
@@ -45,6 +45,7 @@ namespace DNWS
 
     public class HTTPProcessor
     {
+
         protected class PluginInfo
         {
             protected string _path;
@@ -167,7 +168,7 @@ namespace DNWS
                 bytesRead = ns.Read(bytes, 0, bytes.Length);
                 requestStr += Encoding.UTF8.GetString(bytes, 0, bytesRead);
             } while (ns.DataAvailable);
-
+            Console.WriteLine(requestStr); // dont commend this line
             request = new HTTPRequest(requestStr);
             request.addProperty("RemoteEndPoint", _client.RemoteEndPoint.ToString());
 
@@ -216,9 +217,9 @@ namespace DNWS
             }
 
             // Shuting down
-            //ns.Close();
+            ns.Close();
             _client.Shutdown(SocketShutdown.Both);
-            //_client.Close();
+            _client.Close();
 
         }
     }
@@ -242,6 +243,7 @@ namespace DNWS
     /// </summary>
     public class DotNetWebServer
     {
+        public static Random rand = new Random();
         protected int _port;
         protected Program _parent;
         protected Socket serverSocket;
@@ -269,10 +271,10 @@ namespace DNWS
             return _instance;
         }
 
-        public void ThreadProc(Object stateinfo)
+        public void ThreadProc(HTTPProcessor stateinfo)
         {
-            TaskInfo ti = stateinfo as TaskInfo;
-            ti.hp.Process();
+            stateinfo.Process();
+            Thread.Sleep(10);
         }
 
         /// <summary>
@@ -284,6 +286,7 @@ namespace DNWS
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
             // Create listening socket, queue size is 5 now.
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            int Model_server = 1; // 1 = Thread Pool , 2 = Thread , 3 = Normal
             serverSocket.Bind(localEndPoint);
             serverSocket.Listen(5);
             _parent.Log("Server started at port " + _port + ".");
@@ -296,7 +299,19 @@ namespace DNWS
                     // Get one, show some info
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+                    switch(Model_server){
+                        case 1:
+                            ThreadPool.QueueUserWorkItem(new WaitCallback(delegate(object state) 
+                                                        {ThreadProc(hp);}),null);
+                            break;
+                        case 2:
+                            Thread clientThread = new Thread(hp.Process);
+                            clientThread.Start();
+                            break;
+                        case 3 :
+                            hp.Process();
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
