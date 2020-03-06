@@ -14,7 +14,6 @@ namespace DNWS
       if (statDictionary == null)
       {
         statDictionary = new Dictionary<String, int>();
-
       }
     }
 
@@ -27,9 +26,7 @@ namespace DNWS
       }
       else
       {
-        statDictionary[request.Url] = 1;
-
-        
+        statDictionary[request.Url] = 1; 
       }
       mut1.ReleaseMutex();
     }
