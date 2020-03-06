@@ -168,7 +168,7 @@ namespace DNWS
                 bytesRead = ns.Read(bytes, 0, bytes.Length);
                 requestStr += Encoding.UTF8.GetString(bytes, 0, bytesRead);
             } while (ns.DataAvailable);
-            Console.WriteLine(requestStr); // dont commend this line
+            // Console.WriteLine(requestStr); // dont commend this line
             request = new HTTPRequest(requestStr);
             request.addProperty("RemoteEndPoint", _client.RemoteEndPoint.ToString());
 
@@ -286,7 +286,7 @@ namespace DNWS
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
             // Create listening socket, queue size is 5 now.
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            int Model_server = 1; // 1 = Thread Pool , 2 = Thread , 3 = Normal
+            int Model_server = 3; // 1 = Thread Pool , 2 = Thread , 3 = Normal
             serverSocket.Bind(localEndPoint);
             serverSocket.Listen(5);
             _parent.Log("Server started at port " + _port + ".");
