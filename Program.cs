@@ -14,6 +14,7 @@ namespace DNWS
     public class Program
     {
         static public IConfigurationRoot Configuration { get; set; }
+        
 
         // Log to console
         public void Log(String msg)
@@ -45,6 +46,7 @@ namespace DNWS
 
     public class HTTPProcessor
     {
+        
         protected class PluginInfo
         {
             protected string _path;
