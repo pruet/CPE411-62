@@ -52,7 +52,6 @@ namespace DNWS
             protected bool _preprocessing;
             protected bool _postprocessing;
             protected IPlugin _reference;
-
             public string path
             {
                 get { return _path;}
@@ -154,6 +153,7 @@ namespace DNWS
         /// </summary>
         public void Process()
         {
+            
             NetworkStream ns = new NetworkStream(_client);
             string requestStr = "";
             HTTPRequest request = null;
@@ -219,7 +219,6 @@ namespace DNWS
             //ns.Close();
             _client.Shutdown(SocketShutdown.Both);
             //_client.Close();
-
         }
     }
 
@@ -296,7 +295,16 @@ namespace DNWS
                     // Get one, show some info
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    hp.Process();
+                    //hp.Process();
+
+                    //Thread
+                    // Thread thread = new Thread(new ThreadStart(hp.Process));
+                    // thread.Start();
+
+                    //ThreadPool
+                    TaskInfo temp = new TaskInfo(hp);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadProc),temp);
+                    Thread.Sleep(1000);
                 }
                 catch (Exception ex)
                 {
