@@ -41,9 +41,9 @@ namespace DNWS
         sb.Append(entry.Key + ": " + entry.Value.ToString() + "<br />");
       }
       sb.Append("</body></html>");
-      mut2.ReleaseMutex();
       response = new HTTPResponse(200);
       response.body = Encoding.UTF8.GetBytes(sb.ToString());
+      mut2.ReleaseMutex();
       return response;
     }
 
