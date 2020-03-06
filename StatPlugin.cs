@@ -7,6 +7,8 @@ namespace DNWS
   class StatPlugin : IPlugin
   {
     protected static Dictionary<String, int> statDictionary = null;
+    private static Mutex mut1 = new Mutex();
+    private static Mutex mut2 = new Mutex();
     public StatPlugin()
     {
       if (statDictionary == null)
@@ -18,6 +20,7 @@ namespace DNWS
 
     public void PreProcessing(HTTPRequest request)
     {
+      mut1.WaitOne();
       if (statDictionary.ContainsKey(request.Url))
       {
         statDictionary[request.Url] = (int)statDictionary[request.Url] + 1;
@@ -25,10 +28,14 @@ namespace DNWS
       else
       {
         statDictionary[request.Url] = 1;
+
+        
       }
+      mut1.ReleaseMutex();
     }
     public HTTPResponse GetResponse(HTTPRequest request)
     {
+      mut2.WaitOne();
       HTTPResponse response = null;
       StringBuilder sb = new StringBuilder();
       sb.Append("<html><body><h1>Stat:</h1>");
@@ -37,6 +44,7 @@ namespace DNWS
         sb.Append(entry.Key + ": " + entry.Value.ToString() + "<br />");
       }
       sb.Append("</body></html>");
+      mut2.ReleaseMutex();
       response = new HTTPResponse(200);
       response.body = Encoding.UTF8.GetBytes(sb.ToString());
       return response;
