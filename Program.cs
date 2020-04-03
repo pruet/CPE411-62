@@ -280,14 +280,12 @@ namespace DNWS
         /// </summary>
         public void Start()
         {
-            List<Thread> threads = new List<Thread>();
-            Console.CancelKeyPress += new ConsoleCancelEventHandler((Object sender, ConsoleCancelEventArgs args) => {
-                args.Cancel = true;
-                threads.FindAll(thread => thread.IsAlive).ForEach(thread => thread.Abort());
-            });
+            
 
             _port = Convert.ToInt32(Program.Configuration["Port"]);
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _port);
+
+            int Model_server = 1; 
 
             // Create listening socket, queue size is 5 now.
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -302,22 +300,24 @@ namespace DNWS
                     clientSocket = serverSocket.Accept();
                     _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    
-                    // Create thread
-                    ThreadStart threadStart = new ThreadStart(hp.Process);
-                    Thread thread = new Thread(threadStart);
-
-                    // Start Thread
-                    try {
-                        thread.Start();
-                        threads.Add(thread);
-                    } catch (ThreadStateException e) {
-                        _parent.Log("Catch Error: " + e.Message);
-                    }
 
                     // Single thread	                  
                     // hp.Process();	                  
-                    // End single therad	                  
+                    // End single therad	   
+                    switch(Model_server){
+                        case 1:
+                            ThreadPool.QueueUserWorkItem(ThreadProc,hp);
+                            break;
+                        case 2:
+                            Thread clientThread = new Thread(hp.Process);
+                            clientThread.Start();
+                            break;
+                        case 3 :
+                            hp.Process();
+                            break;
+                    }
+
+                                   
                 }
                 catch (Exception ex)
                 {
